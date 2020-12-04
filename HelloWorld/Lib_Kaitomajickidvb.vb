@@ -1105,7 +1105,7 @@ Public Class Lib_Kaitomajickidvb
                         lstPointCheck1.Add(lstPointClone01(0))
 
                 Else
-                        lstPointCheck1.Add(lstPointClone01(0))
+                    lstPointCheck1.Add(lstPoint(2))
 
                 End If
 
@@ -1197,25 +1197,25 @@ Public Class Lib_Kaitomajickidvb
                         End If
                     End If
                 Next
-                If lstPointCheck2.Count >= 2 Then
-                        For h = 0 To lstPointClone02.Count - 2
-                            For q = h + 1 To lstPointClone02.Count - 1
-                                If Ranger02(h) > Ranger02(q) Then
-                                    Dim tgkc As Double = Ranger01(h)
-                                    Dim tgXYZ As XYZ = lstPointClone02(h)
-                                    Ranger02(h) = Ranger02(q)
-                                    lstPointClone02(h) = lstPointClone02(q)
-                                    Ranger02(q) = tgkc
-                                    lstPointClone02(q) = tgXYZ
-                                End If
-                            Next
+                If lstPointClone02.Count >= 2 Then
+                    For h = 0 To lstPointClone02.Count - 2
+                        For q = h + 1 To lstPointClone02.Count - 1
+                            If Ranger02(h) > Ranger02(q) Then
+                                Dim tgkc As Double = Ranger01(h)
+                                Dim tgXYZ As XYZ = lstPointClone02(h)
+                                Ranger02(h) = Ranger02(q)
+                                lstPointClone02(h) = lstPointClone02(q)
+                                Ranger02(q) = tgkc
+                                lstPointClone02(q) = tgXYZ
+                            End If
                         Next
-                        lstPointCheck2.Add(lstPointClone02(0))
+                    Next
+                    lstPointCheck2.Add(lstPointClone02(0))
 
-                    Else
-                        lstPointCheck2.Add(lstPointClone02(0))
+                Else
+                    lstPointCheck2.Add(lstPoint(2))
 
-                    End If
+                End If
 
                     If lstPointCheck2.Count = 2 Then
                     'MsgBox("2")

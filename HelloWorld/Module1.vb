@@ -14,4 +14,5 @@ Module Module1
     Public ModelCurveArr As New ModelCurveArrArray
     Public sketplane As SketchPlane
     Public lstCheckPoint As New List(Of List(Of XYZ))
+    Public kaito As New List(Of List(Of XYZ))
 End Module
