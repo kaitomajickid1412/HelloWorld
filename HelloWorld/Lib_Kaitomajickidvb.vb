@@ -41,7 +41,7 @@ Public Class Lib_Kaitomajickidvb
         'CreateReBarCoLumns(Uidoc, "M_00", "22M", 50) ' Đặt thép cho cột thẳng đứng
         'CreateRooms(doc)
         'CreateRoom(doc, "Level 1")
-        BoundaryExtrude(Uidoc, doc, 0, 10)
+        BoundaryExtrude(Uidoc, doc, 2, 10)
 
         Return Result.Succeeded
     End Function
@@ -642,7 +642,8 @@ Public Class Lib_Kaitomajickidvb
         Dim lstDoanThangab As List(Of List(Of Double))
 
         Dim lstPointIntersect As New List(Of XYZ)
-        Dim lst4PointTong As New List(Of List(Of XYZ))
+        Dim lst4PointTong1 As New List(Of List(Of XYZ))
+        Dim lst4PointTong2 As New List(Of List(Of XYZ))
 
         Dim z As Double
         Try
@@ -676,16 +677,21 @@ Public Class Lib_Kaitomajickidvb
 
                 lstPointIntersect = Findintersectline(lstDoanThangab, z, ListDoanThangPoint)
 
-
-                lst4PointTong = lstPointDetermind2(lstPointIntersect)
+                Dim lstPointDetermind As List(Of List(Of XYZ)) = SortPointDetermind(lstPointIntersect)
+                'lst4PointTong1 = lstPointDetermind2(lstPointIntersect)
+                lst4PointTong2 = lstPointDetermind3(lstPointDetermind)
 
                 Using tr As New Transaction(doc, "Extrude Boundary")
                     tr.Start()
                     'CreateModelLine(UIdoc)
-                    For i = 0 To lst4PointTong.Count - 1
-                        Dim lst4Point As List(Of XYZ) = lst4PointTong(i)
-                        CreateExtrusion(doc, sketplane, lst4Point, z1, z2)
+                    For i = 0 To lst4PointTong2.Count - 1
+                        Dim lst4Point As List(Of XYZ) = lst4PointTong2(i)
+                        CreateExtrusion1(doc, sketplane, lst4Point, z1, z2)
                     Next
+                    'For i = 0 To lst4PointTong1.Count - 1
+                    '    Dim lst4Point As List(Of XYZ) = lst4PointTong1(i)
+                    '    CreateExtrusion(doc, sketplane, lst4Point, z1, z2)
+                    'Next
 
                     lstCheckPoint.Clear()
                     tr.Commit()
@@ -1033,7 +1039,11 @@ Public Class Lib_Kaitomajickidvb
         Dim kqTong As New List(Of List(Of XYZ))
         Dim lstPointold As New List(Of XYZ)
         Dim lstPointoldTong As New List(Of List(Of XYZ))
-        For k = 0 To lstPoint.Count - 1
+        Dim lstDiemGoc As New List(Of XYZ)
+        For i = 0 To lstPoint.Count - 1
+            lstDiemGoc.Add(lstPoint(i))
+        Next
+        For k = 0 To lstDiemGoc.Count - 1
             'Dim kq As List(Of XYZ)
             Dim ListRanger As New List(Of Double)
             Dim lstPointNew1 As New List(Of XYZ)
@@ -1042,7 +1052,9 @@ Public Class Lib_Kaitomajickidvb
             Dim lstPointCheck1 As New List(Of XYZ)
             Dim lstPointCheck2 As New List(Of XYZ)
             Dim Check4Point As New List(Of XYZ)
-            Dim DiemGoc As XYZ = lstPoint(k)
+
+
+            Dim DiemGoc As XYZ = lstDiemGoc(k)
             'tạo list khoảng cách
             For i = 0 To lstPoint.Count - 1
                 Dim a = DetermindRange(DiemGoc, lstPoint(i))
@@ -1089,28 +1101,26 @@ Public Class Lib_Kaitomajickidvb
                     End If
                 Next
                 If lstPointClone01.Count >= 2 Then
-                        For h = 0 To lstPointClone01.Count - 2
-                            For q = h + 1 To lstPointClone01.Count - 1
-                                If Ranger01(h) > Ranger01(q) Then
-                                    Dim tgkc As Double = Ranger01(h)
-                                    Dim tgXYZ As XYZ = lstPointClone01(h)
-                                    Ranger01(h) = Ranger01(q)
-                                    lstPointClone01(h) = lstPointClone01(q)
-                                    Ranger01(q) = tgkc
-                                    lstPointClone01(q) = tgXYZ
-                                End If
-                            Next
+                    For h = 0 To lstPointClone01.Count - 2
+                        For q = h + 1 To lstPointClone01.Count - 1
+                            If Ranger01(h) > Ranger01(q) Then
+                                Dim tgkc As Double = Ranger01(h)
+                                Dim tgXYZ As XYZ = lstPointClone01(h)
+                                Ranger01(h) = Ranger01(q)
+                                lstPointClone01(h) = lstPointClone01(q)
+                                Ranger01(q) = tgkc
+                                lstPointClone01(q) = tgXYZ
+                            End If
                         Next
+                    Next
 
-                        lstPointCheck1.Add(lstPointClone01(0))
+                    lstPointCheck1.Add(lstPointClone01(0))
 
                 Else
                     lstPointCheck1.Add(lstPoint(2))
 
                 End If
-
-
-                    If lstPointCheck1.Count = 2 Then
+                If lstPointCheck1.Count = 2 Then
                     'MsgBox("1")
                 Else
                     Dim lstRanger1 As New List(Of Double)
@@ -1217,7 +1227,7 @@ Public Class Lib_Kaitomajickidvb
 
                 End If
 
-                    If lstPointCheck2.Count = 2 Then
+                If lstPointCheck2.Count = 2 Then
                     'MsgBox("2")
                 Else
                     Dim lstRanger2 As New List(Of Double)
@@ -1232,13 +1242,11 @@ Public Class Lib_Kaitomajickidvb
                     lstCheck2.RemoveAt(RemovePoint(lstPointCheck2(0), lstCheck2))
                     lstCheck2.RemoveAt(RemovePoint(lstPointCheck2(1), lstCheck2))
                     lstCheck2.RemoveAt(RemovePoint(lstPointCheck2(2), lstCheck2))
-
                     Dim S2 As Double = 0
                     For i = 2 To lstPoint.Count - 1
                         If lstPointNew2.Count = 4 Then
                             Exit For
                         Else
-
                             For j = 0 To lstCheck2.Count - 1
                                 'If lstPoint(j).X = lstCheck(j).X And lstPoint(j).Y = lstCheck(j).Y Then
                                 'Else
@@ -1316,7 +1324,6 @@ Public Class Lib_Kaitomajickidvb
                         If lstPointNew1.Count = 4 Then
                             Exit For
                         Else
-
                             For j = 0 To lstCheck1.Count - 1
                                 'If lstPoint(j).X = lstCheck(j).X And lstPoint(j).Y = lstCheck(j).Y Then
                                 'Else
@@ -1339,7 +1346,7 @@ Public Class Lib_Kaitomajickidvb
                                         '    Exit For
                                         'Else
                                         lstRanger1.Add(a)
-                                            LstPointClone1.Add(lstCheck1(j))
+                                        LstPointClone1.Add(lstCheck1(j))
 
                                         'End If
                                     End If
@@ -1359,7 +1366,7 @@ Public Class Lib_Kaitomajickidvb
                             Next
                             Dim lstPointFinal As New List(Of XYZ)
                             For y = 0 To LstPointClone1.Count - 1
-                                If Edge(lstPointNew1(0), LstPointClone1(y)) >= 0 Then
+                                If Edge(lstPointNew1(0), LstPointClone1(y)) <= 0 Then
                                     lstPointFinal.Add(LstPointClone1(y))
                                 End If
                             Next
@@ -1412,6 +1419,49 @@ Public Class Lib_Kaitomajickidvb
                             Else
                                 lstPointNew1.Add(lstPointFinal(0))
                                 lstCheck1.RemoveAt(RemovePoint(lstPointFinal(0), lstCheck1))
+                                Dim lstPointClone11 As New List(Of XYZ)
+                                Dim lstRanger11 As New List(Of Double)
+                                For t = 0 To lstCheck1.Count - 1
+                                    Dim S3 As Double
+                                    S3 = DetermindRange(lstPointNew1(lstPointNew1.Count - 1), lstCheck1(t))
+                                    Dim b = DetermindRange(lstPointNew1(lstPointNew1.Count - 1), lstCheck1(t))
+                                    If S3 > 0 Then
+                                        If lstPointNew1.Count = 3 Then
+                                            If Edge(lstPointNew1(lstPointNew1.Count - 1), lstCheck1(t)) = 0 Then
+
+                                            Else
+                                                lstRanger11.Add(b)
+                                                lstPointClone11.Add(lstCheck1(t))
+                                            End If
+                                        Else
+                                            'If LstPointClone1.Count = 2 Then
+
+                                            '    Exit For
+                                            'Else
+                                            lstRanger11.Add(b)
+                                            lstPointClone11.Add(lstCheck1(t))
+
+                                            'End If
+                                        End If
+                                    Else
+                                        S3 = 0
+                                    End If
+                                Next
+                                For h = 0 To lstPointClone11.Count - 2
+                                    For q = h + 1 To LstPointClone1.Count - 1
+                                        If lstRanger11(h) > lstRanger11(q) Then
+                                            Dim tgkc As Double = lstRanger11(h)
+                                            Dim tgXYZ As XYZ = lstPointClone11(h)
+                                            lstRanger11(h) = lstRanger11(q)
+                                            lstPointClone11(h) = lstPointClone11(q)
+                                            lstRanger11(q) = tgkc
+                                            lstPointClone11(q) = tgXYZ
+                                        End If
+                                    Next
+                                Next
+                                lstPointNew1.Add(lstPointClone11(0))
+                                lstRanger11.Clear()
+                                lstPointClone11.Clear()
                             End If
 
                             lstRanger1.Clear()
@@ -1470,7 +1520,6 @@ Public Class Lib_Kaitomajickidvb
                                 Else
                                     If lstPointNew2.Count = 3 Then
                                         If Edge(lstPointNew2(lstPointNew2.Count - 1), lstCheck2(j)) = 0 Then
-
                                         Else
                                             lstRanger2.Add(a)
                                             LstPointClone2.Add(lstCheck2(j))
@@ -1480,10 +1529,8 @@ Public Class Lib_Kaitomajickidvb
 
                                         ' Exit For
                                         'Else
-
                                         lstRanger2.Add(a)
                                         LstPointClone2.Add(lstCheck2(j))
-
                                         'End If
                                     End If
 
@@ -1503,11 +1550,13 @@ Public Class Lib_Kaitomajickidvb
                             Next
                             Dim lstPointFinal As New List(Of XYZ)
                             For y = 0 To LstPointClone2.Count - 1
-                                If Edge(lstPointNew2(0), LstPointClone2(y)) <= 0 Then
+                                Dim c As Double = Edge(lstPointNew2(0), LstPointClone2(y))
+                                If c >= 0 Then
                                     lstPointFinal.Add(LstPointClone2(y))
                                 End If
                             Next
-                            If lstPointFinal.Count = 0 Then
+                            Dim countFinnal = lstPointFinal.Count
+                            If countFinnal = 0 Then
                                 lstPointNew2.Add(LstPointClone2(0))
                                 lstCheck2.RemoveAt(RemovePoint(LstPointClone2(0), lstCheck2))
                                 Dim lstPointClone22 As New List(Of XYZ)
@@ -1556,6 +1605,49 @@ Public Class Lib_Kaitomajickidvb
                             Else
                                 lstPointNew2.Add(lstPointFinal(0))
                                 lstCheck2.RemoveAt(RemovePoint(lstPointFinal(0), lstCheck2))
+                                Dim lstPointClone22 As New List(Of XYZ)
+                                Dim lstRanger22 As New List(Of Double)
+                                For t = 0 To lstCheck2.Count - 1
+                                    Dim S3 As Double
+                                    S3 = DetermindRange(lstPointNew2(lstPointNew2.Count - 1), lstCheck2(t))
+                                    Dim b = DetermindRange(lstPointNew2(lstPointNew2.Count - 1), lstCheck2(t))
+                                    If S3 > 0 Then
+                                        If lstPointNew2.Count = 3 Then
+                                            If Edge(lstPointNew2(lstPointNew2.Count - 1), lstCheck2(t)) = 0 Then
+
+                                            Else
+                                                lstRanger22.Add(b)
+                                                lstPointClone22.Add(lstCheck2(t))
+                                            End If
+                                        Else
+                                            'If LstPointClone1.Count = 2 Then
+
+                                            '    Exit For
+                                            'Else
+                                            lstRanger22.Add(b)
+                                            lstPointClone22.Add(lstCheck2(t))
+
+                                            'End If
+                                        End If
+                                    Else
+                                        S3 = 0
+                                    End If
+                                Next
+                                For h = 0 To lstPointClone22.Count - 2
+                                    For q = h + 1 To LstPointClone2.Count - 1
+                                        If lstRanger22(h) > lstRanger22(q) Then
+                                            Dim tgkc As Double = lstRanger22(h)
+                                            Dim tgXYZ As XYZ = lstPointClone22(h)
+                                            lstRanger22(h) = lstRanger22(q)
+                                            lstPointClone22(h) = lstPointClone22(q)
+                                            lstRanger22(q) = tgkc
+                                            lstPointClone22(q) = tgXYZ
+                                        End If
+                                    Next
+                                Next
+                                lstPointNew2.Add(lstPointClone22(0))
+                                lstRanger22.Clear()
+                                lstPointClone22.Clear()
                             End If
 
                             lstRanger2.Clear()
@@ -1563,7 +1655,6 @@ Public Class Lib_Kaitomajickidvb
                         End If
                     Next
                     If ChecklistPointTriangle(lstPointNew2) Then
-
                         kqTong.Add(lstPointNew2)
                     Else
 
@@ -1585,6 +1676,147 @@ Public Class Lib_Kaitomajickidvb
 
 
         Return kqTong
+    End Function
+    Public Function lstPointDetermind3(ByVal lstTongPoint As List(Of List(Of XYZ))) As List(Of List(Of XYZ))
+        Dim kqTong As New List(Of List(Of XYZ))
+        Dim lstDiemGoc As New List(Of XYZ)
+        For i = 0 To lstTongPoint.Count - 2
+            Dim lstPoint1 As List(Of XYZ) = lstTongPoint(i)
+            Dim lstPoint2 As List(Of XYZ) = lstTongPoint(i + 1)
+            For h = 0 To lstPoint1.Count - 2
+                For q = h + 1 To lstPoint1.Count - 1
+                    If lstPoint1(h).X > lstPoint1(q).X Then
+                        Dim tgXYZ As XYZ = lstPoint1(h)
+                        lstPoint1(h) = lstPoint1(q)
+                        lstPoint1(q) = tgXYZ
+                    End If
+                Next
+            Next
+            For h = 0 To lstPoint2.Count - 2
+                For q = h + 1 To lstPoint2.Count - 1
+                    If lstPoint2(h).X > lstPoint2(q).X Then
+                        Dim tgXYZ As XYZ = lstPoint2(h)
+                        lstPoint2(h) = lstPoint2(q)
+                        lstPoint2(q) = tgXYZ
+                    End If
+                Next
+            Next
+            For j = 0 To lstPoint1.Count - 2
+                Dim lstClone As New List(Of XYZ)
+                lstClone.Add(lstPoint1(j))
+                lstClone.Add(lstPoint1(j + 1))
+                lstClone.Add(lstPoint2(j + 1))
+                lstClone.Add(lstPoint2(j))
+                kqTong.Add(lstClone)
+            Next
+        Next
+
+
+
+        Return kqTong
+    End Function
+    Public Function SortPointDetermind(ByVal lstpoint As List(Of XYZ)) As List(Of List(Of XYZ))
+        Dim kq As New List(Of List(Of XYZ))
+        Dim Point As XYZ = FindPointLocal(lstpoint)
+        Dim ListPointAu As New List(Of List(Of XYZ))
+        Dim RangerY As New List(Of Double)
+        Dim RangerX As New List(Of Double)
+        Dim CountY As Integer = 0
+        Dim CountX As Integer = 0
+        Dim lstpointClone As New List(Of XYZ)
+        For i = 0 To lstpoint.Count - 1
+            Dim a As Double = DetermindRangerY(Point, lstpoint(i))
+            Dim b As Double = DetermindRangerX(Point, lstpoint(i))
+            RangerY.Add(a)
+            RangerX.Add(b)
+        Next
+        For h = 0 To lstpoint.Count - 2
+            For q = h + 1 To lstpoint.Count - 1
+                If RangerY(h) > RangerY(q) Then
+                    Dim tgkc As Double = RangerY(h)
+                    Dim tgXYZ As XYZ = lstpoint(h)
+                    RangerY(h) = RangerY(q)
+                    lstpoint(h) = lstpoint(q)
+                    RangerY(q) = tgkc
+                    lstpoint(q) = tgXYZ
+                End If
+            Next
+        Next
+        For h = 0 To lstpoint.Count - 2
+            For q = h + 1 To lstpoint.Count - 1
+                If RangerX(h) > RangerX(q) Then
+                    Dim tgkc As Double = RangerX(h)
+                    Dim tgXYZ As XYZ = lstpoint(h)
+                    RangerX(h) = RangerX(q)
+                    lstpoint(h) = lstpoint(q)
+                    RangerX(q) = tgkc
+                    lstpoint(q) = tgXYZ
+                End If
+            Next
+        Next
+
+        For i = 0 To lstpoint.Count - 1
+            lstpointClone.Add(lstpoint(i))
+        Next
+        Dim DiemGoc As XYZ = lstpoint(0)
+        For k = 0 To lstpoint.Count - 1
+            Dim ktX As Double = DetermindRangerX(DiemGoc, lstpoint(k))
+            If ktX = 0 Then
+                CountY = CountY + 1
+            End If
+        Next
+        For k = 0 To lstpoint.Count - 1
+            Dim ktY As Double = DetermindRangerY(DiemGoc, lstpoint(k))
+            If ktY = 0 Then
+                CountX = CountX + 1
+            End If
+        Next
+
+        For i = 0 To lstpoint.Count - 1 Step CountY
+            Dim lstPointContain As New List(Of XYZ)
+            For j = 0 To CountX - 1
+
+                lstPointContain.Add(lstpoint(i + j))
+            Next
+            kq.Add(lstPointContain)
+        Next
+
+        Return kq
+    End Function
+    Public Function FindPointLocal(ByVal lstpoint As List(Of XYZ)) As XYZ
+        Dim kq As New XYZ
+        For h = 0 To lstpoint.Count - 2
+            For q = h + 1 To lstpoint.Count - 1
+                If lstpoint(h).Y < lstpoint(q).Y Then
+                    Dim tgXYZ As XYZ = lstpoint(h)
+                    lstpoint(h) = lstpoint(q)
+                    lstpoint(h) = lstpoint(q)
+                    lstpoint(q) = tgXYZ
+                End If
+            Next
+        Next
+        For h = 0 To lstpoint.Count - 2
+            For q = h + 1 To lstpoint.Count - 1
+                If lstpoint(h).X > lstpoint(q).X Then
+                    Dim tgXYZ As XYZ = lstpoint(h)
+                    lstpoint(h) = lstpoint(q)
+                    lstpoint(h) = lstpoint(q)
+                    lstpoint(q) = tgXYZ
+                End If
+            Next
+        Next
+        kq = lstpoint(0)
+        Return kq
+    End Function
+    Public Function DetermindRangerY(ByVal point1 As XYZ, ByVal point2 As XYZ) As Double
+        Dim kq As Double = Math.Abs(Math.Round(point1.Y, 1) - Math.Round(point2.Y, 1))
+
+        Return kq
+    End Function
+    Public Function DetermindRangerX(ByVal point1 As XYZ, ByVal point2 As XYZ) As Double
+        Dim kq As Double = Math.Abs(Math.Round(point1.X, 1) - Math.Round(point2.X, 1))
+
+        Return kq
     End Function
     Public Function ChecklistPointTriangle(ByVal lstPoint As List(Of XYZ)) As Boolean
         Dim kq As Boolean = True
@@ -1677,11 +1909,11 @@ Public Class Lib_Kaitomajickidvb
         End If
         Return lstPointintersect
     End Function
-    Private Sub CreateExtrusion(document As Autodesk.Revit.DB.Document, sketchPlane As SketchPlane, lstPoint As List(Of XYZ), z1 As Double, z2 As Double)
+    Public Sub CreateExtrusion1(document As Autodesk.Revit.DB.Document, sketchPlane As SketchPlane, lstPoint As List(Of XYZ), z1 As Double, z2 As Double)
         Try
             'If Check4Point(lstPoint, lstCheckPoint) Then
             Dim rectExtrusion As Extrusion = Nothing
-                lstCheckPoint.Add(lstPoint)
+
             'Dim S As Double = 0
             'For i = 0 To lstPoint.Count - 2
             '    For j = i + 1 To lstPoint.Count - 1
@@ -1719,18 +1951,81 @@ Public Class Lib_Kaitomajickidvb
                 Dim Ex = random.Next(z1, z2)
                 rectExtrusion = document.FamilyCreate.NewExtrusion(True, curveArrArray, sketchPlane, Ex)
 
-                '    If rectExtrusion IsNot Nothing Then
-                '        ' move extrusion to proper place
-                '        Dim transPoint1 As New XYZ(-16, 0, 0)
-                '        ElementTransformUtils.MoveElement(document, rectExtrusion.Id, transPoint1)
-                '    Else
-                '        Throw New Exception("Create new Extrusion failed.")
-                '    End If
+                If rectExtrusion IsNot Nothing Then
+                    ' move extrusion to proper place
+                    lstCheckPoint.Add(lstPoint)
+                    'Dim transPoint1 As New XYZ(-16, 0, 0)
+                    'ElementTransformUtils.MoveElement(document, rectExtrusion.Id, transPoint1)
+                Else
+                    Throw New Exception("Create new Extrusion failed.")
+                End If
             Else
                 Throw New Exception("Please open a Family document before invoking this command.")
             End If
 
-            ' End If
+            'End If
+        Catch ex As Exception
+            lstCheckPoint.Clear()
+            Dim [error] As String = ex.Message
+        End Try
+
+
+    End Sub
+    Public Sub CreateExtrusion2(document As Autodesk.Revit.DB.Document, sketchPlane As SketchPlane, lstPoint As List(Of XYZ), z1 As Double, z2 As Double)
+        Try
+            'If Check4Point(lstPoint, lstCheckPoint) Then
+            Dim rectExtrusion As Extrusion = Nothing
+
+            'Dim S As Double = 0
+            'For i = 0 To lstPoint.Count - 2
+            '    For j = i + 1 To lstPoint.Count - 1
+            '        S = S + Edge(lstPoint(i), lstPoint(j))
+            '        If S < 0 Then
+
+            '        Else
+            '            Dim tg As XYZ = lstPoint(i)
+            '            lstPoint(i) = lstPoint(j)
+            '            lstPoint(j) = tg
+            '            Exit For
+            '        End If
+            '    Next
+            'Next
+            If True = document.IsFamilyDocument Then
+
+                Dim curveArrArray As New CurveArrArray()
+                Dim curveArray1 As New CurveArray()
+                For i = 0 To lstPoint.Count - 1
+                    Dim line As Line
+                    If i = lstPoint.Count - 1 Then
+                        Dim p0 As XYZ = lstPoint(i)
+                        Dim p1 As XYZ = lstPoint(0)
+                        line = Line.CreateBound(p0, p1)
+                    Else
+                        Dim p0 As XYZ = lstPoint(i)
+                        Dim p1 As XYZ = lstPoint(i + 1)
+                        line = Line.CreateBound(p0, p1)
+                    End If
+                    curveArray1.Append(line)
+                Next
+                curveArrArray.Append(curveArray1)
+                ' create solid rectangular extrusion
+                Dim random As New Random
+                Dim Ex = random.Next(z1, z2)
+                rectExtrusion = document.FamilyCreate.NewExtrusion(True, curveArrArray, sketchPlane, Ex)
+
+                If rectExtrusion IsNot Nothing Then
+                    ' move extrusion to proper place
+                    lstCheckPoint.Add(lstPoint)
+                    'Dim transPoint1 As New XYZ(-16, 0, 0)
+                    'ElementTransformUtils.MoveElement(document, rectExtrusion.Id, transPoint1)
+                Else
+                    Throw New Exception("Create new Extrusion failed.")
+                End If
+            Else
+                Throw New Exception("Please open a Family document before invoking this command.")
+            End If
+
+            'End If
         Catch ex As Exception
             lstCheckPoint.Clear()
             Dim [error] As String = ex.Message
