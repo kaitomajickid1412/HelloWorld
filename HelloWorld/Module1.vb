@@ -14,5 +14,8 @@ Module Module1
     Public ModelCurveArr As New ModelCurveArrArray
     Public sketplane As SketchPlane
     Public lstCheckPoint As New List(Of List(Of XYZ))
-    Public kaito As New List(Of List(Of XYZ))
+    Public lstExtrude As New List(Of Extrusion)
+    Public lstExtrudeid As New List(Of ElementId)
+    Public LocalPoint As New XYZ
+    Public lstExtrudeidAfterCopy As New List(Of ElementId)
 End Module

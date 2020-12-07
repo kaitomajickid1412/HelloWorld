@@ -260,6 +260,46 @@ Public Class Lib_Kaitomajickidvb
             End Try
         End If
     End Sub
+    Public Sub RotateElement1(UIdoc As UIDocument, GocXoay As Double, LocalPoint As XYZ, Ele As Element)
+        Dim doc As Document = UIdoc.Document
+        Try
+
+            Using tr As New Transaction(doc, "rotation element")
+                tr.Start()
+                Dim P1 As XYZ = LocalPoint
+                Dim P2 As XYZ = New XYZ(P1.X, P1.Y, P1.Z + 10)
+                Dim axis As Line = Line.CreateBound(LocalPoint, P2)
+                Dim Angle As Double = GocXoay * (Math.PI / 180)
+
+                ElementTransformUtils.RotateElement(doc, Ele.Id, axis, Angle)
+                tr.Commit()
+            End Using
+
+        Catch ex As Exception
+            Dim [error] As String = ex.Message
+        End Try
+
+    End Sub
+    Public Sub CopyElement(ByVal UIdoc As UIDocument, ByVal Ele As Element, ByVal PointCopy As XYZ)
+        Dim P0 As XYZ = XYZ.Zero
+        Dim trans As XYZ = PointCopy - P0
+        Using t As Transaction = New Transaction(doc, "CopyElement")
+            t.Start()
+            ElementTransformUtils.CopyElement(doc, Ele.Id, PointCopy)
+            t.Commit()
+        End Using
+    End Sub
+    Public Sub CopyElement(UIdoc As UIDocument, ByVal Ele As Element, ByVal PointCopy As XYZ, ByVal PickPoint As XYZ)
+        Dim doc As Document = UIdoc.Document
+
+        Dim trans As XYZ = PointCopy - PickPoint
+
+        Using tr As New Transaction(doc, "CopyElement")
+            tr.Start()
+            ElementTransformUtils.CopyElement(doc, Ele.Id, trans)
+            tr.Commit()
+        End Using
+    End Sub
     Public Sub DeleteElementUseid(document As Autodesk.Revit.DB.Document, ele As Element)
         Dim elementId As Autodesk.Revit.DB.ElementId = ele.Id
         Dim deletedIdSet As ICollection(Of Autodesk.Revit.DB.ElementId) = document.Delete(elementId)
@@ -693,11 +733,23 @@ Public Class Lib_Kaitomajickidvb
                     '    CreateExtrusion(doc, sketplane, lst4Point, z1, z2)
                     'Next
 
-                    lstCheckPoint.Clear()
+
+
+
                     tr.Commit()
                 End Using
+                For i = 0 To lstExtrude.Count - 1
+                    Dim Ele As Element = lstExtrude(i)
+                    CopyElement(UIdoc, Ele, LocalPoint, LocalPoint)
+                Next
+                For i = 0 To lstExtrude.Count - 1
+                    Dim Ele As Element = lstExtrude(i)
+                    RotateElement1(UIdoc, 180, LocalPoint, Ele)
+                Next
             End If
-
+            lstExtrude.Clear()
+            lstExtrudeid.Clear()
+            lstCheckPoint.Clear()
         Catch ex As Exception
             Dim [error] As String = ex.Message
         End Try
@@ -1806,6 +1858,7 @@ Public Class Lib_Kaitomajickidvb
             Next
         Next
         kq = lstpoint(0)
+        LocalPoint = kq
         Return kq
     End Function
     Public Function DetermindRangerY(ByVal point1 As XYZ, ByVal point2 As XYZ) As Double
@@ -1954,6 +2007,9 @@ Public Class Lib_Kaitomajickidvb
                 If rectExtrusion IsNot Nothing Then
                     ' move extrusion to proper place
                     lstCheckPoint.Add(lstPoint)
+                    lstExtrude.Add(rectExtrusion)
+                    'Dim eleid As ElementId = rectExtrusion.Id
+                    'lstExtrudeid.Add(eleid)
                     'Dim transPoint1 As New XYZ(-16, 0, 0)
                     'ElementTransformUtils.MoveElement(document, rectExtrusion.Id, transPoint1)
                 Else
